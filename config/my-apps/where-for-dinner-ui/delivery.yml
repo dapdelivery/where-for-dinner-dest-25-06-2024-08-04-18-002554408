@@ -1,0 +1,53 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: where-for-dinner-ui
+  annotations:
+    ootb.apps.tanzu.vmware.com/servicebinding-workload: "true"
+    ootb.apps.tanzu.vmware.com/apidescriptor-ref: "true"
+    kapp.k14s.io/change-rule: upsert after upserting servicebinding.io/ServiceBindings
+  labels:
+    app.kubernetes.io/part-of: where-for-dinner-ui
+    apps.tanzu.vmware.com/has-tests: "true"
+    apps.tanzu.vmware.com/workload-type: web
+    networking.knative.dev/visibility: cluster-local
+    app.kubernetes.io/component: run
+    carto.run/workload-name: where-for-dinner-ui
+spec:
+  template:
+    metadata:
+      annotations:
+        apps.tanzu.vmware.com/correlationid: https://github.com/dapdelivery/where-for-dinner-app.git?sub_path=where-for-dinner-ui
+        autoscaling.knative.dev/maxScale: "4"
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/target: "200"
+        conventions.carto.run/applied-conventions: |-
+          spring-boot-convention/auto-configure-actuators-check
+          spring-boot-convention/is-native-app-check
+          spring-boot-convention/app-live-view-appflavour-check
+        developer.conventions/target-containers: workload
+        kubectl.kubernetes.io/last-applied-configuration: |
+          {"apiVersion":"carto.run/v1alpha1","kind":"Workload","metadata":{"annotations":{},"labels":{"app.kubernetes.io/part-of":"where-for-dinner-ui","apps.tanzu.vmware.com/has-tests":"true","apps.tanzu.vmware.com/workload-type":"web","networking.knative.dev/visibility":"cluster-local"},"name":"where-for-dinner-ui","namespace":"my-apps"},"spec":{"build":{"env":[{"name":"BP_NODE_RUN_SCRIPTS","value":"build"},{"name":"BP_WEB_SERVER_ROOT","value":"dist"},{"name":"NPM_CONFIG_REGISTRY","value":"https://build-artifactory.eng.vmware.com/artifactory/api/npm/npm/"}]},"params":[{"name":"gitops_repository","value":"https://github.com/dapdelivery/where-for-dinner-dest-25-06-2024-08-04-18-002554408.git"},{"name":"gitops_repository_name","value":"where-for-dinner-dest-25-06-2024-08-04-18-002554408"},{"name":"annotations","value":{"autoscaling.knative.dev/maxScale":"4","autoscaling.knative.dev/minScale":"1","autoscaling.knative.dev/target":"200"}}],"source":{"git":{"ref":{"branch":"main"},"url":"https://github.com/dapdelivery/where-for-dinner-app.git"},"subPath":"where-for-dinner-ui"}}}
+      labels:
+        app.kubernetes.io/component: run
+        app.kubernetes.io/part-of: where-for-dinner-ui
+        apps.tanzu.vmware.com/has-tests: "true"
+        apps.tanzu.vmware.com/workload-type: web
+        carto.run/workload-name: where-for-dinner-ui
+        networking.knative.dev/visibility: cluster-local
+    spec:
+      containers:
+      - image: gcr.io/tap-ci/ci-pipeline/apps-25-06-2024-08-04-18-002554408/where-for-dinner-ui-my-apps@sha256:38b1e364b92342696c2b876daabdccd2f9ca418b7873e23d3d4cd511e3a30db1
+        name: workload
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+      serviceAccountName: default
+
